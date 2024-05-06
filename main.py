@@ -9,15 +9,13 @@ from dotenv import load_dotenv
 from datetime import datetime
 import urllib.parse
 import requests
+
 def calculate_percentage(start_date, end_date):
     total_hours = (end_date - start_date).total_seconds() / 3600  # Convert seconds to hours
     elapsed_hours = (datetime.now() - start_date).total_seconds() / 3600
     if elapsed_hours > total_hours:
         return 100
     return round((elapsed_hours / total_hours) * 100, 2)
-
-# Create an image displaying the percentage as a progress bar
-import requests
 
 def create_progress_image(percentage, width=800, height=200):
     remaining_percentage = 100 - percentage
@@ -64,7 +62,6 @@ def post_photo():
     percentage = calculate_percentage(start_date, end_date)
     img_path = create_progress_image(percentage)
     text = f"ODTÜ'de bahar dönemi ilerlemesi: %{percentage}"
-    # api.update_status(status=text, media_ids=[api.media_upload(img_path).media_id])
     media = api.media_upload(filename=img_path)
     client.create_tweet(text=text, media_ids=[media.media_id])
     print("Posted image")
