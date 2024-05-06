@@ -113,6 +113,8 @@ schedule.every().day.at("13:00").do(post_photo)
 schedule.every().day.at("16:00").do(post_photo)
 schedule.every().day.at("19:00").do(post_photo)
 schedule.every().day.at("22:00").do(post_photo)
+# Schedule to post remaining days at 19:00 every day
+schedule.every().day.at("19:00").do(post_remaining_days)
 
 while True:
     schedule.run_pending()
