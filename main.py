@@ -67,10 +67,15 @@ def post_photo():
     print("Posted image")
 
 # Schedule to post every 3 hours
-schedule.every(3).hours.do(post_photo)
+schedule.every().day.at("01:00").do(post_photo)
+schedule.every().day.at("04:00").do(post_photo)
+schedule.every().day.at("07:00").do(post_photo)
+schedule.every().day.at("10:00").do(post_photo)
+schedule.every().day.at("13:00").do(post_photo)
+schedule.every().day.at("16:00").do(post_photo)
+schedule.every().day.at("19:00").do(post_photo)
+schedule.every().day.at("22:00").do(post_photo)
 
 while True:
     schedule.run_pending()
-    time.sleep(1)
-
-
+    time.sleep(10)
