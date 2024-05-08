@@ -122,16 +122,28 @@ def post_remaining_days():
     client.create_tweet(text=text, media_ids=[media.media_id])
     logging.info("Posted image")
 
+def retry_scheduled_task(task, max_retries=3, retry_delay=300):
+    attempts = 0
+    while attempts < max_retries:
+        try:
+            task()
+            logging.info("Task completed successfully.")
+            break
+        except Exception as e:
+            attempts += 1
+            logging.error(f"Task failed: {e}. Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
+
 # Schedule to post every 3 hours
-schedule.every().day.at("01:00").do(post_photo)
-schedule.every().day.at("04:00").do(post_photo)
-schedule.every().day.at("07:00").do(post_photo)
-schedule.every().day.at("10:00").do(post_photo)
-schedule.every().day.at("13:00").do(post_photo)
-schedule.every().day.at("16:00").do(post_photo)
-schedule.every().day.at("19:00").do(post_photo)
-schedule.every().day.at("22:00").do(post_photo)
-schedule.every().day.at("19:00").do(post_remaining_days)
+schedule.every().day.at("01:00").do(retry_scheduled_task, task=post_photo)
+schedule.every().day.at("04:00").do(retry_scheduled_task, task=post_photo)
+schedule.every().day.at("07:00").do(retry_scheduled_task, task=post_photo)
+schedule.every().day.at("10:00").do(retry_scheduled_task, task=post_photo)
+schedule.every().day.at("13:00").do(retry_scheduled_task, task=post_photo)
+schedule.every().day.at("16:00").do(retry_scheduled_task, task=post_photo)
+schedule.every().day.at("19:00").do(retry_scheduled_task, task=post_photo)
+schedule.every().day.at("19:00").do(retry_scheduled_task, task=post_remaining_days)
+schedule.every().day.at("22:00").do(retry_scheduled_task, task=post_photo)
 
 while True:
     schedule.run_pending()
