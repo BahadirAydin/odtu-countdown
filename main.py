@@ -19,8 +19,8 @@ def calculate_percentage(start_date, end_date):
     """Calculate the percentage of time elapsed between start and end dates."""
     total_hours = (
         end_date - start_date
-    ).total_seconds() / 3600  # Convert seconds to hours
-    elapsed_hours = (datetime.now() - start_date).total_seconds() / 3600
+    ).total_seconds() 
+    elapsed_hours = (datetime.now() - start_date).total_seconds() 
     if elapsed_hours > total_hours:
         return 100
     return round((elapsed_hours / total_hours) * 100, 2)
@@ -103,7 +103,7 @@ def post_photo():
     remaining_days = (end_date - datetime.now()).days
     percentage = calculate_percentage(start_date, end_date)
     img_path = create_progress_image(percentage)
-    text = f"🔴 ODTÜ'de 2025 güz dönemi ilerlemesi: %{percentage} "
+    text = f"🔴 ODTÜ'de 2024-2025 güz dönemi ilerlemesi: %{percentage} "
     text += f"\n🗓️ Kalan gün sayısı: {remaining_days}"
     media = api.media_upload(filename=img_path)
     client.create_tweet(text=text, media_ids=[media.media_id])
