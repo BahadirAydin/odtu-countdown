@@ -1,13 +1,19 @@
 import os
 import schedule
 import time
-from datetime import datetime
-import tweepy
 import logging
+from datetime import datetime
 import matplotlib.pyplot as plt
-import numpy as np
 from dotenv import load_dotenv
-from os import environ
+import tweepy
+
+# Configuration
+START_DATE = datetime(2024, 9, 30)
+END_DATE = datetime(2025, 1, 3)
+IMAGE_PATH = "progress_image.png"
+POLLING_INTERVAL = 30  # in seconds
+RETRY_DELAY = 300  # in seconds
+MAX_RETRIES = 3
 
 # Setup basic logging
 logging.basicConfig(
@@ -15,35 +21,55 @@ logging.basicConfig(
 )
 
 
-def calculate_percentage(start_date, end_date):
-    """Calculate the percentage of time elapsed between start and end dates."""
-    total = (end_date - start_date).total_seconds()
-    elapsed = (datetime.now() - start_date).total_seconds()
-    if elapsed > total:
-        return 100
-    return round((elapsed / total) * 100, 2)
+def calculate_percentage(start_date: datetime, end_date: datetime) -> float:
+    """
+    Calculate the percentage of time elapsed between the start and end dates.
+
+    Args:
+        start_date (datetime): The starting date.
+        end_date (datetime): The ending date.
+
+    Returns:
+        float: The percentage of elapsed time.
+    """
+    total_seconds = (end_date - start_date).total_seconds()
+    elapsed_seconds = (datetime.now() - start_date).total_seconds()
+    percentage = (
+        (elapsed_seconds / total_seconds) * 100
+        if elapsed_seconds < total_seconds
+        else 100
+    )
+    return round(percentage, 2)
 
 
-def create_progress_image(percentage, width=800, height=200):
-    """Create a polished progress bar image using matplotlib."""
+def create_progress_image(
+    percentage: float, width: int = 800, height: int = 200
+) -> str:
+    """
+    Create a progress bar image using matplotlib and save it.
+
+    Args:
+        percentage (float): The progress percentage to display.
+        width (int): Width of the progress bar image (default: 800).
+        height (int): Height of the progress bar image (default: 200).
+
+    Returns:
+        str: The file path of the saved image.
+    """
     fig, ax = plt.subplots(figsize=(width / 100, height / 100))
 
     # Main progress bar
-    bar_color = "#ff7f7f"
-    ax.barh([0], [percentage], color=bar_color, height=0.3, edgecolor="none", left=0)
-
-    # Add background for remaining progress
-    remaining_color = "#fff"  # Light grey for remaining
+    ax.barh([0], [percentage], color="#ff7f7f", height=0.3, edgecolor="none", left=0)
     ax.barh(
         [0],
         [100 - percentage],
-        left=[percentage],
-        color=remaining_color,
+        color="#fff",
         height=0.3,
         edgecolor="none",
+        left=percentage,
     )
 
-    # Center text for percentage
+    # Center text
     ax.text(
         50,
         0,
@@ -62,66 +88,100 @@ def create_progress_image(percentage, width=800, height=200):
     ax.set_frame_on(False)
 
     # Save the image
-    img_path = "progress_image.png"
-    plt.savefig(img_path, bbox_inches="tight", pad_inches=0.1)
+    plt.savefig(IMAGE_PATH, bbox_inches="tight", pad_inches=0.1)
     plt.close(fig)
-    logging.info(f"Image successfully saved to {img_path}")
-    return img_path
+    logging.info(f"Image successfully saved to {IMAGE_PATH}")
+    return IMAGE_PATH
 
 
-def connect_twitter():
-    """Connect to the Twitter API using Tweepy and environment variables."""
+def connect_twitter() -> tuple:
+    """
+    Connect to the Twitter API using Tweepy and environment variables.
+
+    Returns:
+        tuple: A tuple containing the Twitter client and API instances.
+    """
     load_dotenv()
     tweepy_auth = tweepy.OAuth1UserHandler(
-        environ["API_KEY"],
-        environ["API_KEY_SECRET"],
-        environ["ACCESS_TOKEN"],
-        environ["ACCESS_TOKEN_SECRET"],
-    )
-    client = tweepy.Client(
-        environ["BEARER_TOKEN"],
-        environ["API_KEY"],
-        environ["API_KEY_SECRET"],
-        environ["ACCESS_TOKEN"],
-        environ["ACCESS_TOKEN_SECRET"],
+        os.getenv("API_KEY"),
+        os.getenv("API_KEY_SECRET"),
+        os.getenv("ACCESS_TOKEN"),
+        os.getenv("ACCESS_TOKEN_SECRET"),
     )
     api = tweepy.API(tweepy_auth)
+    client = tweepy.Client(
+        os.getenv("BEARER_TOKEN"),
+        os.getenv("API_KEY"),
+        os.getenv("API_KEY_SECRET"),
+        os.getenv("ACCESS_TOKEN"),
+        os.getenv("ACCESS_TOKEN_SECRET"),
+    )
+    logging.info("Connected to Twitter API")
     return client, api
 
 
 def post_photo():
-    """Generate and post a progress image on Twitter."""
+    """
+    Generate and post a progress image on Twitter with the remaining days and progress.
+    """
     client, api = connect_twitter()
-    start_date = datetime(2024, 9, 30)
-    end_date = datetime(2025, 1, 3)
-    remaining_days = (end_date - datetime.now()).days
-    percentage = calculate_percentage(start_date, end_date)
+    remaining_days = (END_DATE - datetime.now()).days
+    percentage = calculate_percentage(START_DATE, END_DATE)
     img_path = create_progress_image(percentage)
-    text = f"🔴 ODTÜ'de 2024-2025 güz dönemi ilerlemesi: %{percentage} "
-    text += f"\n🗓️ Kalan gün sayısı: {remaining_days}"
+
+    text = f"🔴 ODTÜ'de 2024-2025 güz dönemi ilerlemesi: %{percentage} \n🗓️ Kalan gün sayısı: {remaining_days}"
     media = api.media_upload(filename=img_path)
     client.create_tweet(text=text, media_ids=[media.media_id])
-    logging.info("Posted image")
+    logging.info("Successfully posted progress image on Twitter")
 
 
-def retry_scheduled_task(task, max_retries=3, retry_delay=300):
-    """Retry a scheduled task if it fails."""
-    attempts = 0
-    while attempts < max_retries:
-        try:
-            task()
-            logging.info("Task completed successfully.")
-            break
-        except Exception as e:
-            attempts += 1
-            logging.error(f"Task failed: {e}. Retrying in {retry_delay} seconds...")
-            time.sleep(retry_delay)
+def retry(max_retries: int = MAX_RETRIES, retry_delay: int = RETRY_DELAY):
+    """
+    Decorator to retry a task on failure.
+
+    Args:
+        max_retries (int): Maximum number of retries (default: 3).
+        retry_delay (int): Delay between retries in seconds (default: 300).
+    """
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            attempts = 0
+            while attempts < max_retries:
+                try:
+                    result = func(*args, **kwargs)
+                    logging.info("Task completed successfully.")
+                    return result
+                except Exception as e:
+                    attempts += 1
+                    logging.error(
+                        f"Task failed: {e}. Retrying {attempts}/{max_retries} in {retry_delay} seconds..."
+                    )
+                    time.sleep(retry_delay)
+            logging.error("Max retries reached. Task failed permanently.")
+
+        return wrapper
+
+    return decorator
 
 
-schedule.every().day.at("10:40").do(retry_scheduled_task, task=post_photo)
-schedule.every().day.at("17:30").do(retry_scheduled_task, task=post_photo)
+@retry()
+def scheduled_post_photo():
+    """A wrapper around the post_photo function to be used for scheduling with retries."""
+    post_photo()
+
+
+def schedule_tasks():
+    """
+    Schedule tasks to post the progress photo at specified times.
+    """
+    schedule.every().day.at("10:40").do(scheduled_post_photo)
+    schedule.every().day.at("17:30").do(scheduled_post_photo)
+    logging.info("Scheduled tasks successfully")
+
 
 if __name__ == "__main__":
+    schedule_tasks()
     while True:
         schedule.run_pending()
-        time.sleep(30)
+        time.sleep(POLLING_INTERVAL)
