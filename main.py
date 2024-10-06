@@ -17,22 +17,16 @@ logging.basicConfig(
 
 def calculate_percentage(start_date, end_date):
     """Calculate the percentage of time elapsed between start and end dates."""
-    total_hours = (
-        end_date - start_date
-    ).total_seconds() 
-    elapsed_hours = (datetime.now() - start_date).total_seconds() 
-    if elapsed_hours > total_hours:
+    total = (end_date - start_date).total_seconds()
+    elapsed = (datetime.now() - start_date).total_seconds()
+    if elapsed > total:
         return 100
-    return round((elapsed_hours / total_hours) * 100, 2)
+    return round((elapsed / total) * 100, 2)
 
 
 def create_progress_image(percentage, width=800, height=200):
     """Create a polished progress bar image using matplotlib."""
     fig, ax = plt.subplots(figsize=(width / 100, height / 100))
-
-    # Background gradient
-    gradient = np.linspace(0, 1, 256)
-    gradient = np.vstack((gradient, gradient))
 
     # Main progress bar
     bar_color = "#ff7f7f"
@@ -123,10 +117,11 @@ def retry_scheduled_task(task, max_retries=3, retry_delay=300):
             logging.error(f"Task failed: {e}. Retrying in {retry_delay} seconds...")
             time.sleep(retry_delay)
 
-schedule.every().day.at("10:00").do(retry_scheduled_task, task=post_photo)
+
+schedule.every().day.at("10:40").do(retry_scheduled_task, task=post_photo)
+schedule.every().day.at("17:30").do(retry_scheduled_task, task=post_photo)
 
 if __name__ == "__main__":
-    post_photo()
     while True:
         schedule.run_pending()
         time.sleep(30)
