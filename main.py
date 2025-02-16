@@ -143,52 +143,5 @@ def post_photo():
     logging.info("Successfully posted progress image on Twitter")
 
 
-def retry(max_retries: int = MAX_RETRIES, retry_delay: int = RETRY_DELAY):
-    """
-    Decorator to retry a task on failure.
-
-    Args:
-        max_retries (int): Maximum number of retries (default: 3).
-        retry_delay (int): Delay between retries in seconds (default: 300).
-    """
-
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            attempts = 0
-            while attempts < max_retries:
-                try:
-                    result = func(*args, **kwargs)
-                    logging.info("Task completed successfully.")
-                    return result
-                except Exception as e:
-                    attempts += 1
-                    logging.error(
-                        f"Task failed: {e}. Retrying {attempts}/{max_retries} in {retry_delay} seconds..."
-                    )
-                    time.sleep(retry_delay)
-            logging.error("Max retries reached. Task failed permanently.")
-
-        return wrapper
-
-    return decorator
-
-
-@retry()
-def scheduled_post_photo():
-    """A wrapper around the post_photo function to be used for scheduling with retries."""
-    post_photo()
-
-
-def schedule_tasks():
-    """
-    Schedule tasks to post the progress photo at specified times.
-    """
-    schedule.every().day.at("18:00").do(scheduled_post_photo)
-    logging.info("Scheduled tasks successfully")
-
-
 if __name__ == "__main__":
-    schedule_tasks()
-    while True:
-        schedule.run_pending()
-        time.sleep(POLLING_INTERVAL)
+    post_photo()
