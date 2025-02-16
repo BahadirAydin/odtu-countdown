@@ -2,16 +2,22 @@ import os
 import schedule
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 import tweepy
 
+import os
+import time
+
+os.environ["TZ"] = "Europe/Istanbul"
+time.tzset()
+
 # Configuration
-START_DATE = datetime(2024, 9, 30)
-END_DATE = datetime(2025, 1, 3)
+START_DATE = datetime(2025, 2, 17)
+END_DATE = datetime(2025, 5, 31)
 IMAGE_PATH = "progress_image.png"
-POLLING_INTERVAL = 30  # in seconds
+POLLING_INTERVAL = 50  # in seconds
 RETRY_DELAY = 300  # in seconds
 MAX_RETRIES = 3
 
@@ -32,13 +38,15 @@ def calculate_percentage(start_date: datetime, end_date: datetime) -> float:
     Returns:
         float: The percentage of elapsed time.
     """
+    now = datetime.now()
+    if now < start_date:
+        return 0.00
+    elif now.date() == (end_date - timedelta(days=1)).date():
+        return 100.00
+
     total_seconds = (end_date - start_date).total_seconds()
-    elapsed_seconds = (datetime.now() - start_date).total_seconds()
-    percentage = (
-        (elapsed_seconds / total_seconds) * 100
-        if elapsed_seconds < total_seconds
-        else 100
-    )
+    elapsed_seconds = (now - start_date).total_seconds()
+    percentage = (elapsed_seconds / total_seconds) * 100
     return round(percentage, 2)
 
 
@@ -59,7 +67,7 @@ def create_progress_image(
     fig, ax = plt.subplots(figsize=(width / 100, height / 100))
 
     # Main progress bar
-    ax.barh([0], [percentage], color="#ff7f7f", height=0.3, edgecolor="none", left=0)
+    ax.barh([0], [percentage], color="#AAFAC8", height=0.3, edgecolor="none", left=0)
     ax.barh(
         [0],
         [100 - percentage],
@@ -88,7 +96,7 @@ def create_progress_image(
     ax.set_frame_on(False)
 
     # Save the image
-    plt.savefig(IMAGE_PATH, bbox_inches="tight", pad_inches=0.1)
+    plt.savefig(IMAGE_PATH, bbox_inches="tight", pad_inches=0.05)
     plt.close(fig)
     logging.info(f"Image successfully saved to {IMAGE_PATH}")
     return IMAGE_PATH
@@ -129,7 +137,7 @@ def post_photo():
     percentage = calculate_percentage(START_DATE, END_DATE)
     img_path = create_progress_image(percentage)
 
-    text = f"🔴 ODTÜ'de 2024-2025 güz dönemi ilerlemesi: %{percentage} \n🗓️ Kalan gün sayısı: {remaining_days}"
+    text = f"🔴 ODTÜ'de 2024-2025 bahar dönemi ilerlemesi: %{percentage}"
     media = api.media_upload(filename=img_path)
     client.create_tweet(text=text, media_ids=[media.media_id])
     logging.info("Successfully posted progress image on Twitter")
@@ -175,8 +183,7 @@ def schedule_tasks():
     """
     Schedule tasks to post the progress photo at specified times.
     """
-    schedule.every().day.at("10:40").do(scheduled_post_photo)
-    schedule.every().day.at("17:30").do(scheduled_post_photo)
+    schedule.every().day.at("18:00").do(scheduled_post_photo)
     logging.info("Scheduled tasks successfully")
 
 
