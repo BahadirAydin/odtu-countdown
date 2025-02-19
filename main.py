@@ -1,5 +1,4 @@
 import os
-import schedule
 import time
 import logging
 from datetime import datetime, timedelta
