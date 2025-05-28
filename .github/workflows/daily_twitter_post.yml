@@ -2,7 +2,7 @@ name: Daily Twitter Post
 
 on:
   schedule:
-    - cron: '0 15 * * *'  # Runs daily at 18:00 UTC (adjust as needed)
+    - cron: '0 13 * * *'  # Runs daily at 16:00 UTC (adjust as needed)
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
