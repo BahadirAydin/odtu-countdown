@@ -1,14 +1,13 @@
 import os
 import time
 import logging
+import argparse
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 import tweepy
 
-import os
-import time
-
+# Set timezone
 os.environ["TZ"] = "Europe/Istanbul"
 time.tzset()
 
@@ -16,9 +15,6 @@ time.tzset()
 START_DATE = datetime(2025, 2, 17)
 END_DATE = datetime(2025, 5, 31)
 IMAGE_PATH = "progress_image.png"
-POLLING_INTERVAL = 50  # in seconds
-RETRY_DELAY = 300  # in seconds
-MAX_RETRIES = 3
 
 # Setup basic logging
 logging.basicConfig(
@@ -143,4 +139,39 @@ def post_photo():
 
 
 if __name__ == "__main__":
-    post_photo()
+    parser = argparse.ArgumentParser(
+        description="Post semester progress on Twitter or view percentage."
+    )
+    parser.add_argument(
+        "--percentage-only",
+        action="store_true",
+        help="Only show the current percentage and exit.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run everything except actually posting to Twitter.",
+    )
+    args = parser.parse_args()
+
+    percentage = calculate_percentage(START_DATE, END_DATE)
+
+    if args.percentage_only:
+        print(f"Current progress: %{percentage}")
+    else:
+        client, api = connect_twitter()
+        logging.info(f"Dry run: {args.dry_run}")
+        remaining_days = (END_DATE - datetime.now()).days
+        img_path = create_progress_image(percentage)
+        text = f"🔴 ODTÜ'de 2024-2025 bahar dönemi ilerlemesi: %{percentage}"
+
+        if args.dry_run:
+            logging.info(
+                "Dry run mode: Image would be posted with the following content:"
+            )
+            logging.info(f"Text: {text}")
+            logging.info(f"Image path: {img_path}")
+        else:
+            media = api.media_upload(filename=img_path)
+            client.create_tweet(text=text, media_ids=[media.media_id])
+            logging.info("Successfully posted progress image on Twitter")
