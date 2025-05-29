@@ -22,7 +22,7 @@ logging.basicConfig(
 )
 
 
-def calculate_percentage(start_date: datetime, end_date: datetime) -> float:
+def calculate_percentage(start_date: datetime, end_date: datetime) -> float | int:
     """
     Calculate the percentage of time elapsed between the start and end dates.
 
@@ -31,28 +31,30 @@ def calculate_percentage(start_date: datetime, end_date: datetime) -> float:
         end_date (datetime): The ending date.
 
     Returns:
-        float: The percentage of elapsed time.
+        float | int: The percentage of elapsed time, as int if no decimal part.
     """
     now = datetime.now()
     if now < start_date:
-        return 0.00
+        return 0
     elif now.date() == (end_date - timedelta(days=1)).date():
-        return 100.00
+        return 100
 
     total_seconds = (end_date - start_date).total_seconds()
     elapsed_seconds = (now - start_date).total_seconds()
-    percentage = (elapsed_seconds / total_seconds) * 100
-    return round(percentage, 2)
+    percentage = round((elapsed_seconds / total_seconds) * 100, 2)
+
+    # Return as int if no decimal part (e.g., 100.0 -> 100)
+    return int(percentage) if percentage.is_integer() else percentage
 
 
 def create_progress_image(
-    percentage: float, width: int = 800, height: int = 200
+    percentage: float | int, width: int = 800, height: int = 200
 ) -> str:
     """
     Create a progress bar image using matplotlib and save it.
 
     Args:
-        percentage (float): The progress percentage to display.
+        percentage (float | int): The progress percentage to display.
         width (int): Width of the progress bar image (default: 800).
         height (int): Height of the progress bar image (default: 200).
 
