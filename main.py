@@ -12,8 +12,8 @@ os.environ["TZ"] = "Europe/Istanbul"
 time.tzset()
 
 # Configuration
-START_DATE = datetime(2025, 2, 17)
-END_DATE = datetime(2025, 5, 31)
+START_DATE = datetime(2025, 9, 29)
+END_DATE = datetime(2026, 1, 3)
 IMAGE_PATH = "progress_image.png"
 
 # Setup basic logging
@@ -21,6 +21,12 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+def is_more_than_a_day_before(start_date: datetime, now: datetime | None = None) -> bool:
+    """
+    Return True if 'now' is more than 24 hours earlier than 'start_date'.
+    """
+    now = now or datetime.now()
+    return now < (start_date - timedelta(days=1))
 
 def calculate_percentage(start_date: datetime, end_date: datetime) -> float | int:
     """
@@ -43,9 +49,7 @@ def calculate_percentage(start_date: datetime, end_date: datetime) -> float | in
     elapsed_seconds = (now - start_date).total_seconds()
     percentage = round((elapsed_seconds / total_seconds) * 100, 2)
 
-    # Return as int if no decimal part (e.g., 100.0 -> 100)
     return int(percentage) if percentage.is_integer() else percentage
-
 
 def create_progress_image(
     percentage: float | int, width: int = 800, height: int = 200
@@ -98,7 +102,6 @@ def create_progress_image(
     logging.info(f"Image successfully saved to {IMAGE_PATH}")
     return IMAGE_PATH
 
-
 def connect_twitter() -> tuple:
     """
     Connect to the Twitter API using Tweepy and environment variables.
@@ -124,13 +127,19 @@ def connect_twitter() -> tuple:
     logging.info("Connected to Twitter API")
     return client, api
 
-
 def post_photo():
     """
     Generate and post a progress image on Twitter with the remaining days and progress.
+    Skips posting if now is more than 1 day before START_DATE.
     """
+    # Early guard: do not tweet if it's more than a day before the start date
+    if is_more_than_a_day_before(START_DATE):
+        logging.info(
+            "Skipping tweet: More than 1 day remains before START_DATE (%s).", START_DATE
+        )
+        return
+
     client, api = connect_twitter()
-    remaining_days = (END_DATE - datetime.now()).days
     percentage = calculate_percentage(START_DATE, END_DATE)
     img_path = create_progress_image(percentage)
 
@@ -138,7 +147,6 @@ def post_photo():
     media = api.media_upload(filename=img_path)
     client.create_tweet(text=text, media_ids=[media.media_id])
     logging.info("Successfully posted progress image on Twitter")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -161,19 +169,33 @@ if __name__ == "__main__":
     if args.percentage_only:
         print(f"Current progress: %{percentage}")
     else:
+        # Early guard for CLI as well
+        early = is_more_than_a_day_before(START_DATE)
+        if early:
+            logging.info(
+                "More than 1 day before START_DATE (%s). Tweet will be skipped.",
+                START_DATE,
+            )
+
         client, api = connect_twitter()
         logging.info(f"Dry run: {args.dry_run}")
-        remaining_days = (END_DATE - datetime.now()).days
         img_path = create_progress_image(percentage)
         text = f"🔴 ODTÜ'de 2024-2025 bahar dönemi ilerlemesi: %{percentage}"
 
         if args.dry_run:
-            logging.info(
-                "Dry run mode: Image would be posted with the following content:"
-            )
+            if early:
+                logging.info(
+                    "Dry run mode: Would NOT post due to early guard. Content would have been:"
+                )
+            else:
+                logging.info("Dry run mode: Image would be posted with the following content:")
             logging.info(f"Text: {text}")
             logging.info(f"Image path: {img_path}")
         else:
-            media = api.media_upload(filename=img_path)
-            client.create_tweet(text=text, media_ids=[media.media_id])
-            logging.info("Successfully posted progress image on Twitter")
+            if early:
+                logging.info("Skipping actual tweet due to early guard.")
+            else:
+                media = api.media_upload(filename=img_path)
+                client.create_tweet(text=text, media_ids=[media.media_id])
+                logging.info("Successfully posted progress image on Twitter")
+
