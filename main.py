@@ -68,7 +68,7 @@ def create_progress_image(
     fig, ax = plt.subplots(figsize=(width / 100, height / 100))
 
     # Main progress bar
-    ax.barh([0], [percentage], color="#AAFAC8", height=0.3, edgecolor="none", left=0)
+    ax.barh([0], [percentage], color="#86feff", height=0.3, edgecolor="none", left=0)
     ax.barh(
         [0],
         [100 - percentage],
@@ -143,7 +143,7 @@ def post_photo():
     percentage = calculate_percentage(START_DATE, END_DATE)
     img_path = create_progress_image(percentage)
 
-    text = f"🔴 ODTÜ'de 2024-2025 bahar dönemi ilerlemesi: %{percentage}"
+    text = f"🔴 ODTÜ'de 2025-2026 bahar dönemi ilerlemesi: %{percentage}"
     media = api.media_upload(filename=img_path)
     client.create_tweet(text=text, media_ids=[media.media_id])
     logging.info("Successfully posted progress image on Twitter")
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         client, api = connect_twitter()
         logging.info(f"Dry run: {args.dry_run}")
         img_path = create_progress_image(percentage)
-        text = f"🔴 ODTÜ'de 2024-2025 bahar dönemi ilerlemesi: %{percentage}"
+        text = f"🔴 ODTÜ'de 2025-2026 bahar dönemi ilerlemesi: %{percentage}"
 
         if args.dry_run:
             if early:
