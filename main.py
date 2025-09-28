@@ -143,7 +143,7 @@ def post_photo():
     percentage = calculate_percentage(START_DATE, END_DATE)
     img_path = create_progress_image(percentage)
 
-    text = f"🔴 ODTÜ'de 2025-2026 bahar dönemi ilerlemesi: %{percentage}"
+    text = f"⚪ 2025-2026 bahar dönemi ilerlemesi: %{percentage}"
     media = api.media_upload(filename=img_path)
     client.create_tweet(text=text, media_ids=[media.media_id])
     logging.info("Successfully posted progress image on Twitter")
