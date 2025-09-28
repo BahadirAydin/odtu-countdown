@@ -15,6 +15,7 @@ time.tzset()
 START_DATE = datetime(2025, 9, 29)
 END_DATE = datetime(2026, 1, 3)
 IMAGE_PATH = "progress_image.png"
+PROGRESS_TEXT = "⚪ 2025-2026 güz dönemi ilerlemesi"
 
 # Setup basic logging
 logging.basicConfig(
@@ -151,7 +152,7 @@ def post_photo():
     percentage = calculate_percentage(START_DATE, END_DATE)
     img_path = create_progress_image(percentage)
 
-    text = f"⚪ 2025-2026 güz dönemi ilerlemesi: %{percentage}"
+    text = f"{PROGRESS_TEXT}: %{percentage}"
     media = api.media_upload(filename=img_path)
     client.create_tweet(text=text, media_ids=[media.media_id])
     logging.info("Successfully posted progress image on Twitter")
@@ -176,9 +177,8 @@ if __name__ == "__main__":
     percentage = calculate_percentage(START_DATE, END_DATE)
 
     if args.percentage_only:
-        print(f"Current progress: %{percentage}")
+        print(f"{PROGRESS_TEXT}: %{percentage}")
     else:
-        # Early guard for CLI as well
         early = is_more_than_a_day_before(START_DATE)
         if early:
             logging.info(
@@ -189,7 +189,7 @@ if __name__ == "__main__":
         client, api = connect_twitter()
         logging.info(f"Dry run: {args.dry_run}")
         img_path = create_progress_image(percentage)
-        text = f"⚪ 2025-2026 güz dönemi ilerlemesi: %{percentage}"
+        text = f"{PROGRESS_TEXT}: %{percentage}"
 
         if args.dry_run:
             if early:
@@ -209,3 +209,4 @@ if __name__ == "__main__":
                 media = api.media_upload(filename=img_path)
                 client.create_tweet(text=text, media_ids=[media.media_id])
                 logging.info("Successfully posted progress image on Twitter")
+
