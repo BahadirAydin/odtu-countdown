@@ -21,12 +21,16 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-def is_more_than_a_day_before(start_date: datetime, now: datetime | None = None) -> bool:
+
+def is_more_than_a_day_before(
+    start_date: datetime, now: datetime | None = None
+) -> bool:
     """
     Return True if 'now' is more than 24 hours earlier than 'start_date'.
     """
     now = now or datetime.now()
     return now < (start_date - timedelta(days=1))
+
 
 def calculate_percentage(start_date: datetime, end_date: datetime) -> float | int:
     """
@@ -50,6 +54,7 @@ def calculate_percentage(start_date: datetime, end_date: datetime) -> float | in
     percentage = round((elapsed_seconds / total_seconds) * 100, 2)
 
     return int(percentage) if percentage.is_integer() else percentage
+
 
 def create_progress_image(
     percentage: float | int, width: int = 800, height: int = 200
@@ -102,6 +107,7 @@ def create_progress_image(
     logging.info(f"Image successfully saved to {IMAGE_PATH}")
     return IMAGE_PATH
 
+
 def connect_twitter() -> tuple:
     """
     Connect to the Twitter API using Tweepy and environment variables.
@@ -127,6 +133,7 @@ def connect_twitter() -> tuple:
     logging.info("Connected to Twitter API")
     return client, api
 
+
 def post_photo():
     """
     Generate and post a progress image on Twitter with the remaining days and progress.
@@ -135,7 +142,8 @@ def post_photo():
     # Early guard: do not tweet if it's more than a day before the start date
     if is_more_than_a_day_before(START_DATE):
         logging.info(
-            "Skipping tweet: More than 1 day remains before START_DATE (%s).", START_DATE
+            "Skipping tweet: More than 1 day remains before START_DATE (%s).",
+            START_DATE,
         )
         return
 
@@ -143,10 +151,11 @@ def post_photo():
     percentage = calculate_percentage(START_DATE, END_DATE)
     img_path = create_progress_image(percentage)
 
-    text = f"⚪ 2025-2026 bahar dönemi ilerlemesi: %{percentage}"
+    text = f"⚪ 2025-2026 güz dönemi ilerlemesi: %{percentage}"
     media = api.media_upload(filename=img_path)
     client.create_tweet(text=text, media_ids=[media.media_id])
     logging.info("Successfully posted progress image on Twitter")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -180,7 +189,7 @@ if __name__ == "__main__":
         client, api = connect_twitter()
         logging.info(f"Dry run: {args.dry_run}")
         img_path = create_progress_image(percentage)
-        text = f"🔴 ODTÜ'de 2025-2026 bahar dönemi ilerlemesi: %{percentage}"
+        text = f"⚪ 2025-2026 güz dönemi ilerlemesi: %{percentage}"
 
         if args.dry_run:
             if early:
@@ -188,7 +197,9 @@ if __name__ == "__main__":
                     "Dry run mode: Would NOT post due to early guard. Content would have been:"
                 )
             else:
-                logging.info("Dry run mode: Image would be posted with the following content:")
+                logging.info(
+                    "Dry run mode: Image would be posted with the following content:"
+                )
             logging.info(f"Text: {text}")
             logging.info(f"Image path: {img_path}")
         else:
@@ -198,4 +209,3 @@ if __name__ == "__main__":
                 media = api.media_upload(filename=img_path)
                 client.create_tweet(text=text, media_ids=[media.media_id])
                 logging.info("Successfully posted progress image on Twitter")
-
