@@ -135,6 +135,16 @@ def connect_twitter() -> tuple:
     return client, api
 
 
+def get_tweet_text(percentage: float | int) -> str:
+    """
+    Generate the tweet text based on the percentage.
+    Adds special formatting for 100%.
+    """
+    if percentage == 100:
+        return f"{PROGRESS_TEXT}: %{percentage} 🏁\n\nFinallerde başarılar!"
+    return f"{PROGRESS_TEXT}: %{percentage}"
+
+
 def post_photo():
     """
     Generate and post a progress image on Twitter with the remaining days and progress.
@@ -152,7 +162,7 @@ def post_photo():
     percentage = calculate_percentage(START_DATE, END_DATE)
     img_path = create_progress_image(percentage)
 
-    text = f"{PROGRESS_TEXT}: %{percentage}"
+    text = get_tweet_text(percentage)
     media = api.media_upload(filename=img_path)
     client.create_tweet(text=text, media_ids=[media.media_id])
     logging.info("Successfully posted progress image on Twitter")
@@ -175,9 +185,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     percentage = calculate_percentage(START_DATE, END_DATE)
+    text = get_tweet_text(percentage)
 
     if args.percentage_only:
-        print(f"{PROGRESS_TEXT}: %{percentage}")
+        print(text)
     else:
         early = is_more_than_a_day_before(START_DATE)
         if early:
@@ -189,7 +200,6 @@ if __name__ == "__main__":
         client, api = connect_twitter()
         logging.info(f"Dry run: {args.dry_run}")
         img_path = create_progress_image(percentage)
-        text = f"{PROGRESS_TEXT}: %{percentage}"
 
         if args.dry_run:
             if early:
@@ -209,4 +219,3 @@ if __name__ == "__main__":
                 media = api.media_upload(filename=img_path)
                 client.create_tweet(text=text, media_ids=[media.media_id])
                 logging.info("Successfully posted progress image on Twitter")
-
