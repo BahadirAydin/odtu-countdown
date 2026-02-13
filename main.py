@@ -68,6 +68,7 @@ def main() -> None:
         path = create_progress_image(
             percentage=percentage,
             semester_name=semester.display_name,
+            semester_type=semester.semester_type,
         )
         print(f"Image saved to: {path}")
         return

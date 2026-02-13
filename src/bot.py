@@ -106,6 +106,7 @@ def run_post(
         percentage=percentage,
         semester_name=semester.display_name,
         is_milestone=is_milestone,
+        semester_type=semester.semester_type,
     )
 
     # Generate tweet text
