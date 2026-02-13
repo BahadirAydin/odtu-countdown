@@ -59,11 +59,11 @@ class Theme:
     # Called after the border frame to draw theme-specific decorations
     draw_decorations: DrawHook | None = field(default=None, repr=False)
     # Called instead of the default milestone badge
-    draw_milestone_badge: MilestoneBadgeHook | None = field(
-        default=None, repr=False
-    )
+    draw_milestone_badge: MilestoneBadgeHook | None = field(default=None, repr=False)
 
     @property
     def resolved_accent_color(self) -> Color:
         """Accent color, falling back to bar_fill_color."""
-        return self.accent_color if self.accent_color is not None else self.bar_fill_color
+        return (
+            self.accent_color if self.accent_color is not None else self.bar_fill_color
+        )

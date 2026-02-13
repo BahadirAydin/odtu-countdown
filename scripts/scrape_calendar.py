@@ -53,9 +53,7 @@ TURKISH_MONTHS = {
 
 # Pattern: "DD MONTH YYYY" or "DD MONTH"
 DATE_PATTERN = re.compile(
-    r"(\d{1,2})\s+("
-    + "|".join(TURKISH_MONTHS.keys())
-    + r")\s*(\d{4})?",
+    r"(\d{1,2})\s+(" + "|".join(TURKISH_MONTHS.keys()) + r")\s*(\d{4})?",
     re.IGNORECASE,
 )
 
@@ -137,7 +135,9 @@ def parse_calendar(html: str, year_str: str) -> list[dict]:
     soup = BeautifulSoup(html, "html.parser")
 
     # Find the main content area
-    content = soup.find("div", class_="field--name-body") or soup.find("article") or soup
+    content = (
+        soup.find("div", class_="field--name-body") or soup.find("article") or soup
+    )
     text_content = content.get_text()
 
     # Split into lines and process
@@ -267,7 +267,9 @@ def update_config(new_semesters: list[dict], config_path: Path = CONFIG_PATH) ->
         config["milestones"] = [10, 25, 33, 42, 50, 69, 75, 90, 100]
 
     with open(config_path, "w", encoding="utf-8") as f:
-        yaml.dump(config, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        yaml.dump(
+            config, f, default_flow_style=False, allow_unicode=True, sort_keys=False
+        )
 
     print(f"\nConfig updated: {config_path}")
     print(f"Total semesters: {len(merged)}")

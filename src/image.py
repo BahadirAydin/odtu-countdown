@@ -82,9 +82,7 @@ def _draw_segment(
             fill=theme.bar_fill_highlight,
         )
         # Add subtle inner border for pixel grid look
-        draw.rectangle(
-            [x, y, x + w, y + h], outline=theme.grid_line_color, width=1
-        )
+        draw.rectangle([x, y, x + w, y + h], outline=theme.grid_line_color, width=1)
     elif 0 < partial < 1.0:
         # Partially filled segment
         filled_w = max(int(w * partial), 1)
@@ -100,22 +98,22 @@ def _draw_segment(
         if x + filled_w < x + w:
             draw.rectangle([x + filled_w, y, x + w, y + h], fill=theme.bar_bg_color)
         # Border
-        draw.rectangle(
-            [x, y, x + w, y + h], outline=theme.grid_line_color, width=1
-        )
+        draw.rectangle([x, y, x + w, y + h], outline=theme.grid_line_color, width=1)
 
 
 def _turkish_upper(text: str) -> str:
     """Uppercase with Turkish locale rules (i -> İ, ı -> I)."""
-    _tr_map = str.maketrans({
-        "i": "İ",
-        "ı": "I",
-        "ö": "Ö",
-        "ü": "Ü",
-        "ş": "Ş",
-        "ç": "Ç",
-        "ğ": "Ğ",
-    })
+    _tr_map = str.maketrans(
+        {
+            "i": "İ",
+            "ı": "I",
+            "ö": "Ö",
+            "ü": "Ü",
+            "ş": "Ş",
+            "ç": "Ç",
+            "ğ": "Ğ",
+        }
+    )
     return text.translate(_tr_map).upper()
 
 
@@ -150,7 +148,12 @@ def create_progress_image(
     # --- Draw border frame ---
     border_inset = 15
     draw.rectangle(
-        [border_inset, border_inset, IMG_WIDTH - border_inset, IMG_HEIGHT - border_inset],
+        [
+            border_inset,
+            border_inset,
+            IMG_WIDTH - border_inset,
+            IMG_HEIGHT - border_inset,
+        ],
         outline=theme.border_color,
         width=2,
     )
@@ -162,7 +165,10 @@ def create_progress_image(
         (border_inset, border_inset),
         (IMG_WIDTH - border_inset - corner_size, border_inset),
         (border_inset, IMG_HEIGHT - border_inset - corner_size),
-        (IMG_WIDTH - border_inset - corner_size, IMG_HEIGHT - border_inset - corner_size),
+        (
+            IMG_WIDTH - border_inset - corner_size,
+            IMG_HEIGHT - border_inset - corner_size,
+        ),
     ]:
         draw.rectangle(
             [cx, cy, cx + corner_size, cy + corner_size],
@@ -187,9 +193,14 @@ def create_progress_image(
 
     # Text shadow
     draw.text(
-        (header_x + 2, header_y + 2), header_text, fill=theme.text_shadow_color, font=font_header
+        (header_x + 2, header_y + 2),
+        header_text,
+        fill=theme.text_shadow_color,
+        font=font_header,
     )
-    draw.text((header_x, header_y), header_text, fill=theme.text_color, font=font_header)
+    draw.text(
+        (header_x, header_y), header_text, fill=theme.text_color, font=font_header
+    )
 
     # --- Decorative line under header ---
     line_y = header_y + 35
@@ -200,7 +211,9 @@ def create_progress_image(
         width=1,
     )
     # Small diamond at center of line
-    diamond_color = theme.milestone_glow if is_milestone else theme.resolved_accent_color
+    diamond_color = (
+        theme.milestone_glow if is_milestone else theme.resolved_accent_color
+    )
     diamond_cx = IMG_WIDTH // 2
     ds = 4
     draw.polygon(
@@ -228,7 +241,9 @@ def create_progress_image(
 
     # --- Draw segments ---
     total_bar_width = BAR_RIGHT - BAR_LEFT
-    segment_total_width = (total_bar_width - (SEGMENT_COUNT - 1) * SEGMENT_GAP) // SEGMENT_COUNT
+    segment_total_width = (
+        total_bar_width - (SEGMENT_COUNT - 1) * SEGMENT_GAP
+    ) // SEGMENT_COUNT
     filled_segments = percentage / 100.0 * SEGMENT_COUNT
 
     for i in range(SEGMENT_COUNT):
@@ -237,15 +252,26 @@ def create_progress_image(
 
         if i < int(filled_segments):
             # Fully filled
-            _draw_segment(draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, True, theme, 1.0)
+            _draw_segment(
+                draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, True, theme, 1.0
+            )
         elif i == int(filled_segments) and filled_segments % 1 > 0:
             # Partially filled
             _draw_segment(
-                draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, True, theme, filled_segments % 1
+                draw,
+                seg_x,
+                seg_y,
+                segment_total_width,
+                BAR_HEIGHT,
+                True,
+                theme,
+                filled_segments % 1,
             )
         else:
             # Empty
-            _draw_segment(draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, False, theme, 0.0)
+            _draw_segment(
+                draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, False, theme, 0.0
+            )
 
     # --- Percentage text ---
     font_pct = _load_font(32)
@@ -287,7 +313,12 @@ def create_progress_image(
                     fill=(255, 200, 0),
                     font=font_badge,
                 )
-            draw.text((badge_x, badge_y), badge_text, fill=theme.milestone_glow, font=font_badge)
+            draw.text(
+                (badge_x, badge_y),
+                badge_text,
+                fill=theme.milestone_glow,
+                font=font_badge,
+            )
 
     # --- Scanline effect (subtle retro touch) ---
     if theme.scanline_enabled:

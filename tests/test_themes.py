@@ -44,16 +44,26 @@ class TestThemeColorValidation:
     """Validate that all theme color tuples are well-formed RGB."""
 
     COLOR_FIELDS = [
-        "bg_color", "bar_bg_color", "bar_fill_color", "bar_fill_highlight",
-        "border_color", "text_color", "text_shadow_color", "grid_line_color",
+        "bg_color",
+        "bar_bg_color",
+        "bar_fill_color",
+        "bar_fill_highlight",
+        "border_color",
+        "text_color",
+        "text_shadow_color",
+        "grid_line_color",
         "milestone_glow",
     ]
 
     def _assert_valid_rgb(self, color, field_name, theme_name):
         assert isinstance(color, tuple), f"{theme_name}.{field_name} is not a tuple"
-        assert len(color) == 3, f"{theme_name}.{field_name} has {len(color)} elements, expected 3"
+        assert (
+            len(color) == 3
+        ), f"{theme_name}.{field_name} has {len(color)} elements, expected 3"
         for i, val in enumerate(color):
-            assert 0 <= val <= 255, f"{theme_name}.{field_name}[{i}] = {val} out of 0-255"
+            assert (
+                0 <= val <= 255
+            ), f"{theme_name}.{field_name}[{i}] = {val} out of 0-255"
 
     def test_cyber_colors_valid(self):
         for field in self.COLOR_FIELDS:

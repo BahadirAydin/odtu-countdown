@@ -131,7 +131,9 @@ class TestRunPost:
     @patch("src.bot.create_progress_image", return_value="/tmp/test.png")
     @patch("src.bot.get_current_semester")
     @patch("src.bot.load_milestones", return_value=[10, 25, 50, 100])
-    def test_milestone_mode(self, mock_milestones, mock_semester, mock_image, mock_twitter):
+    def test_milestone_mode(
+        self, mock_milestones, mock_semester, mock_image, mock_twitter
+    ):
         sem = Semester(
             name="test semester",
             start=date(2025, 9, 29),
@@ -151,7 +153,9 @@ class TestRunPost:
     @patch("src.bot.create_progress_image", return_value="/tmp/test.png")
     @patch("src.bot.get_current_semester")
     @patch("src.bot.load_milestones", return_value=[10, 25, 50, 100])
-    def test_dry_run_does_not_post(self, mock_milestones, mock_semester, mock_image, mock_twitter):
+    def test_dry_run_does_not_post(
+        self, mock_milestones, mock_semester, mock_image, mock_twitter
+    ):
         sem = Semester(
             name="test semester",
             start=date(2025, 9, 29),
@@ -182,7 +186,9 @@ class TestRunPost:
     @patch("src.bot.create_progress_image", return_value="/tmp/test.png")
     @patch("src.bot.get_current_semester")
     @patch("src.bot.load_milestones", return_value=[10, 25, 50, 100])
-    def test_semester_type_passed_to_image(self, mock_milestones, mock_semester, mock_image, mock_twitter):
+    def test_semester_type_passed_to_image(
+        self, mock_milestones, mock_semester, mock_image, mock_twitter
+    ):
         sem = Semester(
             name="test semester",
             start=date(2025, 9, 29),

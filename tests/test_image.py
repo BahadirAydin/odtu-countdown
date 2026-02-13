@@ -84,28 +84,20 @@ class TestCreateProgressImage:
 
     def test_percentage_clamped_above_100(self, tmp_output_path):
         """Percentage > 100 should be clamped — no error."""
-        path = create_progress_image(
-            150.0, "Test", output_path=tmp_output_path
-        )
+        path = create_progress_image(150.0, "Test", output_path=tmp_output_path)
         assert Path(path).exists()
 
     def test_percentage_clamped_below_zero(self, tmp_output_path):
         """Negative percentage should be clamped — no error."""
-        path = create_progress_image(
-            -10.0, "Test", output_path=tmp_output_path
-        )
+        path = create_progress_image(-10.0, "Test", output_path=tmp_output_path)
         assert Path(path).exists()
 
     def test_zero_percentage(self, tmp_output_path):
-        path = create_progress_image(
-            0.0, "Test", output_path=tmp_output_path
-        )
+        path = create_progress_image(0.0, "Test", output_path=tmp_output_path)
         assert Path(path).exists()
 
     def test_hundred_percentage(self, tmp_output_path):
-        path = create_progress_image(
-            100.0, "Test", output_path=tmp_output_path
-        )
+        path = create_progress_image(100.0, "Test", output_path=tmp_output_path)
         assert Path(path).exists()
 
     def test_custom_output_path(self, tmp_path):

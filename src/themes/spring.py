@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 # --- Custom decoration hooks ---
 
+
 def _draw_spring_decorations(
     draw: ImageDraw.ImageDraw,
     img: Image.Image,
@@ -31,10 +32,10 @@ def _draw_spring_decorations(
 
     # --- Bunting flags (festival banner triangles along top) ---
     flag_colors = [
-        (74, 124, 46),   # Campus green
+        (74, 124, 46),  # Campus green
         (218, 165, 32),  # Golden
-        (180, 80, 60),   # Warm terracotta
-        (74, 124, 46),   # Campus green
+        (180, 80, 60),  # Warm terracotta
+        (74, 124, 46),  # Campus green
         (100, 160, 70),  # Lighter green
     ]
     flag_y_start = border_inset + 2
@@ -70,8 +71,16 @@ def _draw_spring_decorations(
     )
 
     # --- Corner leaf/flower pixels ---
-    _draw_corner_leaf(draw, border_inset + 2, img.height - border_inset - 18, is_milestone)
-    _draw_corner_leaf(draw, width - border_inset - 18, img.height - border_inset - 18, is_milestone, flip=True)
+    _draw_corner_leaf(
+        draw, border_inset + 2, img.height - border_inset - 18, is_milestone
+    )
+    _draw_corner_leaf(
+        draw,
+        width - border_inset - 18,
+        img.height - border_inset - 18,
+        is_milestone,
+        flip=True,
+    )
 
 
 def _draw_corner_leaf(
@@ -141,17 +150,17 @@ def _draw_spring_milestone_badge(
 
 SPRING_THEME = Theme(
     name="spring",
-    bg_color=(250, 245, 230),             # Warm cream/off-white
-    bar_bg_color=(220, 215, 195),         # Light warm gray
-    bar_fill_color=(74, 124, 46),         # ODTU campus green
-    bar_fill_highlight=(120, 180, 70),    # Lighter spring green
-    border_color=(180, 165, 130),         # Warm tan border
-    text_color=(55, 45, 35),              # Dark warm brown text
-    text_shadow_color=(250, 245, 230),    # Same as bg (subtle emboss effect)
-    grid_line_color=(205, 200, 180),      # Subtle warm grid
-    milestone_glow=(218, 165, 32),        # Golden sunlight
-    accent_color=(218, 165, 32),          # Golden for corners/diamond
-    scanline_enabled=False,               # No scanlines - bright clean look
+    bg_color=(250, 245, 230),  # Warm cream/off-white
+    bar_bg_color=(220, 215, 195),  # Light warm gray
+    bar_fill_color=(74, 124, 46),  # ODTU campus green
+    bar_fill_highlight=(120, 180, 70),  # Lighter spring green
+    border_color=(180, 165, 130),  # Warm tan border
+    text_color=(55, 45, 35),  # Dark warm brown text
+    text_shadow_color=(250, 245, 230),  # Same as bg (subtle emboss effect)
+    grid_line_color=(205, 200, 180),  # Subtle warm grid
+    milestone_glow=(218, 165, 32),  # Golden sunlight
+    accent_color=(218, 165, 32),  # Golden for corners/diamond
+    scanline_enabled=False,  # No scanlines - bright clean look
     draw_decorations=_draw_spring_decorations,
     draw_milestone_badge=_draw_spring_milestone_badge,
 )

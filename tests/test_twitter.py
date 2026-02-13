@@ -14,7 +14,9 @@ class TestConnect:
     @patch("src.twitter.load_dotenv")
     def test_raises_when_all_vars_missing(self, mock_dotenv):
         client = TwitterClient()
-        with pytest.raises(EnvironmentError, match="Missing required environment variables"):
+        with pytest.raises(
+            EnvironmentError, match="Missing required environment variables"
+        ):
             client.connect()
 
     @patch.dict("os.environ", {}, clear=True)
@@ -24,12 +26,23 @@ class TestConnect:
         with pytest.raises(EnvironmentError) as exc_info:
             client.connect()
         msg = str(exc_info.value)
-        for var in ["API_KEY", "API_KEY_SECRET", "ACCESS_TOKEN", "ACCESS_TOKEN_SECRET", "BEARER_TOKEN"]:
+        for var in [
+            "API_KEY",
+            "API_KEY_SECRET",
+            "ACCESS_TOKEN",
+            "ACCESS_TOKEN_SECRET",
+            "BEARER_TOKEN",
+        ]:
             assert var in msg
 
     @patch.dict(
         "os.environ",
-        {"API_KEY": "k", "API_KEY_SECRET": "ks", "ACCESS_TOKEN": "t", "ACCESS_TOKEN_SECRET": "ts"},
+        {
+            "API_KEY": "k",
+            "API_KEY_SECRET": "ks",
+            "ACCESS_TOKEN": "t",
+            "ACCESS_TOKEN_SECRET": "ts",
+        },
         clear=True,
     )
     @patch("src.twitter.load_dotenv")

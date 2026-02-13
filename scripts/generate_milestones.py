@@ -21,7 +21,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.calendar import load_semesters, load_milestones, TZ
 
-WORKFLOW_PATH = Path(__file__).parent.parent / ".github" / "workflows" / "milestone_post.yml"
+WORKFLOW_PATH = (
+    Path(__file__).parent.parent / ".github" / "workflows" / "milestone_post.yml"
+)
 
 
 def calculate_milestone_times(
@@ -77,12 +79,17 @@ def generate_workflow(milestone_times: list[dict]) -> str:
     # Collect unique cron entries (GitHub allows max ~20 schedules)
     cron_entries = []
     for mt in milestone_times:
-        cron_entries.append(f"    - cron: '{mt['cron']}'  # {mt['semester_name']} {mt['milestone']}%")
+        cron_entries.append(
+            f"    - cron: '{mt['cron']}'  # {mt['semester_name']} {mt['milestone']}%"
+        )
 
     # If too many, warn
     if len(cron_entries) > 20:
-        print(f"WARNING: {len(cron_entries)} cron entries exceed GitHub's limit. "
-              "Consider reducing milestones or semesters.", file=sys.stderr)
+        print(
+            f"WARNING: {len(cron_entries)} cron entries exceed GitHub's limit. "
+            "Consider reducing milestones or semesters.",
+            file=sys.stderr,
+        )
 
     cron_block = "\n".join(cron_entries)
 
