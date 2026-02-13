@@ -97,12 +97,8 @@ class TestProgressAt:
         assert fall_semester.progress_at(far_past) == 0.0
 
     def test_approximately_fifty_at_midpoint(self, fall_semester):
-        start_dt = datetime.combine(
-            fall_semester.start, datetime.min.time(), tzinfo=TZ
-        )
-        end_dt = datetime.combine(
-            fall_semester.end, datetime.min.time(), tzinfo=TZ
-        )
+        start_dt = datetime.combine(fall_semester.start, datetime.min.time(), tzinfo=TZ)
+        end_dt = datetime.combine(fall_semester.end, datetime.min.time(), tzinfo=TZ)
         mid = start_dt + (end_dt - start_dt) / 2
         pct = fall_semester.progress_at(mid)
         assert 49.9 <= pct <= 50.1
@@ -111,9 +107,7 @@ class TestProgressAt:
         """Percentage should always increase as time passes."""
         from datetime import timedelta
 
-        start_dt = datetime.combine(
-            fall_semester.start, datetime.min.time(), tzinfo=TZ
-        )
+        start_dt = datetime.combine(fall_semester.start, datetime.min.time(), tzinfo=TZ)
         prev = 0.0
         for day in range(fall_semester.total_days + 1):
             now = start_dt + timedelta(days=day)
@@ -149,12 +143,8 @@ class TestMilestoneDatetime:
 
     def test_milestone_fifty_is_midpoint(self, fall_semester):
         dt = fall_semester.milestone_datetime(50)
-        start_dt = datetime.combine(
-            fall_semester.start, datetime.min.time(), tzinfo=TZ
-        )
-        end_dt = datetime.combine(
-            fall_semester.end, datetime.min.time(), tzinfo=TZ
-        )
+        start_dt = datetime.combine(fall_semester.start, datetime.min.time(), tzinfo=TZ)
+        end_dt = datetime.combine(fall_semester.end, datetime.min.time(), tzinfo=TZ)
         expected_mid = start_dt + (end_dt - start_dt) / 2
         # Allow 1 second tolerance due to rounding
         diff = abs((dt - expected_mid).total_seconds())
@@ -168,6 +158,31 @@ class TestMilestoneDatetime:
             dt = fall_semester.milestone_datetime(m)
             assert dt > prev, f"Milestone {m}% is not after previous"
             prev = dt
+
+    def test_milestone_roundtrip_progress(self, fall_semester):
+        """milestone_datetime(m) should produce progress_at == m (within rounding)."""
+        milestones = [10, 25, 33, 42, 50, 69, 75, 90, 100]
+        for m in milestones:
+            dt = fall_semester.milestone_datetime(m)
+            pct = fall_semester.progress_at(dt)
+            assert (
+                abs(pct - m) < 0.01
+            ), f"Roundtrip fail: milestone {m}% -> datetime -> progress_at = {pct}%"
+
+    def test_milestone_cron_utc_roundtrip(self, fall_semester):
+        """milestone_datetime -> UTC cron fields should match the UTC datetime."""
+        from zoneinfo import ZoneInfo
+
+        milestones = [10, 25, 33, 42, 50, 69, 75, 90, 100]
+        for m in milestones:
+            dt = fall_semester.milestone_datetime(m)
+            dt_utc = dt.astimezone(ZoneInfo("UTC"))
+            cron = f"{dt_utc.minute} {dt_utc.hour} {dt_utc.day} {dt_utc.month} *"
+            parts = cron.split()
+            assert int(parts[0]) == dt_utc.minute, f"{m}%: minute mismatch"
+            assert int(parts[1]) == dt_utc.hour, f"{m}%: hour mismatch"
+            assert int(parts[2]) == dt_utc.day, f"{m}%: day mismatch"
+            assert int(parts[3]) == dt_utc.month, f"{m}%: month mismatch"
 
 
 # ---- Format percentage tests ----
