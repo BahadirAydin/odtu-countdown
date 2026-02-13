@@ -1,0 +1,42 @@
+# ODTU Semester Dates Configuration
+# Update this file when the academic calendar is published.
+# Run `python scripts/scrape_calendar.py` to auto-populate from the ODTU website.
+#
+# Each semester needs:
+#   name: Display name for the tweet text (e.g. "2025-2026 guz donemi")
+#   start: First day of classes (YYYY-MM-DD)
+#   end: Last day of classes (YYYY-MM-DD)
+#   type: "guz" (fall) or "bahar" (spring)
+
+semesters:
+  - name: "2024-2025 bahar donemi"
+    start: "2025-02-17"
+    end: "2025-06-06"
+    type: "bahar"
+
+  - name: "2025-2026 guz donemi"
+    start: "2025-09-29"
+    end: "2026-01-02"
+    type: "guz"
+
+  - name: "2025-2026 bahar donemi"
+    start: "2026-02-16"
+    end: "2026-06-05"
+    type: "bahar"
+
+  - name: "2026-2027 guz donemi"
+    start: "2026-09-28"
+    end: "2027-01-08"  # TBD - update when calendar is published
+    type: "guz"
+
+# Milestone percentages that trigger special posts
+milestones:
+  - 10
+  - 25
+  - 33
+  - 42
+  - 50
+  - 69
+  - 75
+  - 90
+  - 100
