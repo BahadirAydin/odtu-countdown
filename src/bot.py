@@ -44,7 +44,7 @@ def get_tweet_text(
     base = f"\u26aa {semester.display_name} ilerlemesi: %{pct_str}"
 
     if percentage >= 100:
-        return f"{base} \U0001f3c1\n\nFinallerde başarılar!"
+        base = f"{base} \U0001f3c1"
 
     if is_milestone:
         custom_msg = MILESTONE_MESSAGES.get(int(percentage))
