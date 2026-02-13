@@ -1,0 +1,31 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: python -m pytest tests/ -q --tb=short
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+
+      - id: verify-milestones
+        name: verify milestone workflow is up to date
+        entry: python scripts/verify_milestones.py
+        language: system
+        files: '(config/semesters\.yaml|\.github/workflows/milestone_post\.yml|scripts/generate_milestones\.py)'
+        pass_filenames: false
