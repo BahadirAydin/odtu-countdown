@@ -18,27 +18,7 @@ from src.calendar import (
     TZ,
 )
 
-# ---- Test fixtures ----
-
-
-@pytest.fixture
-def fall_semester():
-    return Semester(
-        name="2025-2026 guz donemi",
-        start=date(2025, 9, 29),
-        end=date(2026, 1, 2),
-        semester_type="guz",
-    )
-
-
-@pytest.fixture
-def spring_semester():
-    return Semester(
-        name="2025-2026 bahar donemi",
-        start=date(2026, 2, 16),
-        end=date(2026, 6, 5),
-        semester_type="bahar",
-    )
+# Fixtures (fall_semester, spring_semester) provided by conftest.py
 
 
 # ---- Semester dataclass tests ----
