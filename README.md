@@ -1,0 +1,204 @@
+# ODTU Twitter Bot
+
+A Twitter/X bot that posts daily semester progress updates for ODTU (Middle East Technical University). It generates a pixel art progress bar image showing how much of the current semester has elapsed, and tweets it with a percentage update.
+
+## Features
+
+- **Daily progress tweets** at 19:00 Istanbul time with a pixel art progress bar
+- **Milestone tweets** at specific percentages (10%, 25%, 33%, 42%, 50%, 69%, 75%, 90%, 100%) with special styling
+- **Auto-detects** the active semester from config -- no code changes needed per semester
+- **Gracefully skips** posting when no semester is active (breaks, summer, etc.)
+- **Scraper** to pull semester dates from the official ODTU academic calendar
+- **Pre-calculated cron** schedules for milestone posts via GitHub Actions
+
+## Example Tweet
+
+```
+⚪ 2025-2026 bahar dönemi ilerlemesi: %42
+```
+
+At 100%:
+```
+⚪ 2025-2026 bahar dönemi ilerlemesi: %100 🏁
+
+Finallerde başarılar!
+```
+
+## Project Structure
+
+```
+odtu-twitter-bot/
+├── main.py                          # CLI entry point
+├── config/
+│   └── semesters.yaml               # Semester dates + milestone config
+├── src/
+│   ├── calendar.py                  # Semester model, progress calculation, timezone
+│   ├── twitter.py                   # Twitter API wrapper (tweepy v1.1 + v2)
+│   ├── image.py                     # Pillow-based pixel art progress bar generator
+│   └── bot.py                       # Tweet text generation, posting flow
+├── scripts/
+│   ├── scrape_calendar.py           # Scrape ODTU OIDB for semester dates
+│   └── generate_milestones.py       # Generate milestone cron workflow
+├── assets/
+│   └── PressStart2P.ttf             # Pixel font (Press Start 2P from Google Fonts)
+├── tests/
+│   └── test_calendar.py             # 40 tests for calendar logic
+├── .github/workflows/
+│   ├── daily_twitter_post.yml       # Daily 19:00 Istanbul time cron
+│   └── milestone_post.yml           # Auto-generated milestone cron schedules
+├── requirements.txt
+└── .env                             # Twitter API credentials (not committed)
+```
+
+## Setup
+
+### Prerequisites
+
+- Python 3.11+
+- A Twitter/X developer account with API keys (Free tier is sufficient for posting)
+
+### Installation
+
+```bash
+git clone https://github.com/BahadirAydin/odtu-twitter-bot.git
+cd odtu-twitter-bot
+pip install -r requirements.txt
+```
+
+### Twitter API Credentials
+
+Create a `.env` file in the project root:
+
+```env
+API_KEY=your_api_key
+API_KEY_SECRET=your_api_key_secret
+ACCESS_TOKEN=your_access_token
+ACCESS_TOKEN_SECRET=your_access_token_secret
+BEARER_TOKEN=your_bearer_token
+```
+
+For GitHub Actions, add these as repository secrets with the same names.
+
+### Semester Configuration
+
+Semester dates are stored in `config/semesters.yaml`:
+
+```yaml
+semesters:
+  - name: "2025-2026 guz donemi"
+    start: "2025-09-29"
+    end: "2026-01-02"
+    type: "guz"
+
+  - name: "2025-2026 bahar donemi"
+    start: "2026-02-16"
+    end: "2026-06-05"
+    type: "bahar"
+
+milestones:
+  - 10
+  - 25
+  - 33
+  - 42
+  - 50
+  - 69
+  - 75
+  - 90
+  - 100
+```
+
+## Usage
+
+```bash
+# Post daily progress update
+python main.py
+
+# Post as a milestone tweet (gold styling)
+python main.py --milestone
+
+# Generate image + text without posting (no Twitter credentials needed)
+python main.py --dry-run
+
+# Print current semester status
+python main.py --status
+
+# Generate only the progress bar image
+python main.py --generate-image
+```
+
+## Adding New Semesters
+
+### Option 1: Scrape from ODTU Website
+
+The scraper pulls dates from the official ODTU OIDB academic calendar page:
+
+```bash
+# Scrape the current and next academic year
+python scripts/scrape_calendar.py --dry-run    # Preview first
+python scripts/scrape_calendar.py              # Update config
+
+# Scrape a specific year
+python scripts/scrape_calendar.py --year 2026-2027 --dry-run
+```
+
+The scraper extracts "Derslerin Baslamasi" (classes start) and "derslerin son gunu" (last day of classes) for both fall and spring semesters.
+
+### Option 2: Manual Edit
+
+Edit `config/semesters.yaml` directly. Each semester needs:
+- `name`: Display name (use ASCII -- `guz donemi` not `güz dönemi`)
+- `start`: First day of classes (YYYY-MM-DD)
+- `end`: Last day of classes (YYYY-MM-DD)
+- `type`: `guz` (fall) or `bahar` (spring)
+
+### After Updating Semesters
+
+Regenerate the milestone workflow:
+
+```bash
+# Preview upcoming milestones
+python scripts/generate_milestones.py --preview
+
+# Generate the workflow file
+python scripts/generate_milestones.py
+```
+
+Then commit both `config/semesters.yaml` and `.github/workflows/milestone_post.yml`.
+
+## GitHub Actions
+
+### Daily Post (`daily_twitter_post.yml`)
+
+Runs every day at 19:00 Istanbul time (16:00 UTC). The bot checks if a semester is active and skips posting if not, so it's safe to leave running year-round.
+
+### Milestone Post (`milestone_post.yml`)
+
+Auto-generated by `scripts/generate_milestones.py`. Contains individual cron entries for the exact time each milestone percentage is reached. For example, if the 50% mark of the spring semester falls on April 11 at 12:00 Istanbul time, a cron entry `0 9 11 4 *` (UTC) triggers at that moment.
+
+## Image Style
+
+The progress bar uses a modern pixel art style:
+- Dark navy background with a border frame and corner decorations
+- 20 discrete cyan segments with highlight rows for depth
+- Press Start 2P pixel font for all text
+- Turkish-aware uppercase rendering (i -> I, ş -> Ş, etc.)
+- Milestone posts get gold text color and a "MILESTONE!" badge with glow effect
+- 1200x400px output (optimized for Twitter cards)
+
+## Tests
+
+```bash
+python -m pytest tests/ -v
+```
+
+40 tests covering:
+- Semester properties and display names
+- Progress calculation (0%, 100%, clamping, monotonicity, midpoint, precision)
+- Milestone datetime ordering
+- Percentage formatting
+- Config loading and validation
+- Semester selection (during, between, before semesters)
+
+## License
+
+MIT
