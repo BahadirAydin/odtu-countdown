@@ -1,8 +1,9 @@
 """
 Modern pixel art progress bar image generator using Pillow.
 
-Produces a clean pixel-grid progress bar with a modern color scheme,
-pixel font, and subtle retro styling.
+Produces a clean pixel-grid progress bar with theming support.
+Colors and decorations are provided by the active theme; core layout
+and drawing logic lives here as shared code.
 """
 
 import logging
@@ -10,22 +11,14 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+from src.themes import get_theme
+from src.themes.base import Theme
+
 logger = logging.getLogger(__name__)
 
 ASSETS_DIR = Path(__file__).parent.parent / "assets"
 FONT_PATH = ASSETS_DIR / "PressStart2P.ttf"
 DEFAULT_OUTPUT = Path(__file__).parent.parent / "progress_image.png"
-
-# --- Color palette (modern pixel art) ---
-BG_COLOR = (18, 18, 30)  # Deep navy/dark blue
-BAR_BG_COLOR = (35, 35, 55)  # Dark gray-blue for empty bar
-BAR_FILL_COLOR = (0, 220, 220)  # Bright cyan/teal
-BAR_FILL_HIGHLIGHT = (100, 255, 255)  # Lighter cyan for highlight row
-BORDER_COLOR = (60, 60, 90)  # Subtle border
-TEXT_COLOR = (230, 230, 250)  # Off-white / lavender
-TEXT_SHADOW_COLOR = (0, 0, 0)  # Black shadow
-GRID_LINE_COLOR = (25, 25, 42)  # Subtle grid lines
-MILESTONE_GLOW = (255, 220, 50)  # Gold for milestone posts
 
 # --- Dimensions ---
 IMG_WIDTH = 1200
@@ -37,7 +30,6 @@ BAR_HEIGHT = 100
 BAR_BOTTOM = BAR_TOP + BAR_HEIGHT
 SEGMENT_COUNT = 20  # Number of discrete pixel blocks
 SEGMENT_GAP = 4  # Gap between segments
-SEGMENT_INNER_GAP = 2  # Inner gap for pixel grid effect
 
 
 def _load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -56,6 +48,7 @@ def _draw_segment(
     w: int,
     h: int,
     filled: bool,
+    theme: Theme,
     partial: float = 1.0,
 ) -> None:
     """
@@ -66,48 +59,49 @@ def _draw_segment(
         x, y: Top-left corner of the segment.
         w, h: Width and height of the segment.
         filled: Whether this segment is in the filled portion.
+        theme: Active theme for colors.
         partial: 0.0-1.0 for partially filled segments.
     """
     if not filled and partial <= 0:
         # Empty segment
-        draw.rectangle([x, y, x + w, y + h], fill=BAR_BG_COLOR)
+        draw.rectangle([x, y, x + w, y + h], fill=theme.bar_bg_color)
         # Add subtle grid lines within empty segments
         mid_y = y + h // 2
-        draw.line([(x, mid_y), (x + w, mid_y)], fill=GRID_LINE_COLOR, width=1)
+        draw.line([(x, mid_y), (x + w, mid_y)], fill=theme.grid_line_color, width=1)
         mid_x = x + w // 2
-        draw.line([(mid_x, y), (mid_x, y + h)], fill=GRID_LINE_COLOR, width=1)
+        draw.line([(mid_x, y), (mid_x, y + h)], fill=theme.grid_line_color, width=1)
         return
 
     if filled and partial >= 1.0:
         # Fully filled segment
-        draw.rectangle([x, y, x + w, y + h], fill=BAR_FILL_COLOR)
+        draw.rectangle([x, y, x + w, y + h], fill=theme.bar_fill_color)
         # Add highlight on top portion for depth
         highlight_h = max(h // 4, 2)
         draw.rectangle(
             [x + 1, y + 1, x + w - 1, y + highlight_h],
-            fill=BAR_FILL_HIGHLIGHT,
+            fill=theme.bar_fill_highlight,
         )
         # Add subtle inner border for pixel grid look
         draw.rectangle(
-            [x, y, x + w, y + h], outline=GRID_LINE_COLOR, width=1
+            [x, y, x + w, y + h], outline=theme.grid_line_color, width=1
         )
     elif 0 < partial < 1.0:
         # Partially filled segment
         filled_w = max(int(w * partial), 1)
         # Filled part
-        draw.rectangle([x, y, x + filled_w, y + h], fill=BAR_FILL_COLOR)
+        draw.rectangle([x, y, x + filled_w, y + h], fill=theme.bar_fill_color)
         if filled_w > 3:
             highlight_h = max(h // 4, 2)
             draw.rectangle(
                 [x + 1, y + 1, x + filled_w - 1, y + highlight_h],
-                fill=BAR_FILL_HIGHLIGHT,
+                fill=theme.bar_fill_highlight,
             )
         # Empty part
         if x + filled_w < x + w:
-            draw.rectangle([x + filled_w, y, x + w, y + h], fill=BAR_BG_COLOR)
+            draw.rectangle([x + filled_w, y, x + w, y + h], fill=theme.bar_bg_color)
         # Border
         draw.rectangle(
-            [x, y, x + w, y + h], outline=GRID_LINE_COLOR, width=1
+            [x, y, x + w, y + h], outline=theme.grid_line_color, width=1
         )
 
 
@@ -129,6 +123,7 @@ def create_progress_image(
     percentage: float,
     semester_name: str = "",
     is_milestone: bool = False,
+    semester_type: str = "guz",
     output_path: Path | str | None = None,
 ) -> str:
     """
@@ -138,6 +133,7 @@ def create_progress_image(
         percentage: Progress percentage (0-100).
         semester_name: Semester display name for the header text.
         is_milestone: Whether this is a milestone post (adds special effects).
+        semester_type: "guz" or "bahar" — selects the visual theme automatically.
         output_path: Where to save the image. Defaults to progress_image.png.
 
     Returns:
@@ -146,18 +142,21 @@ def create_progress_image(
     output = Path(output_path) if output_path else DEFAULT_OUTPUT
     percentage = max(0.0, min(100.0, percentage))
 
-    img = Image.new("RGB", (IMG_WIDTH, IMG_HEIGHT), BG_COLOR)
+    theme = get_theme(semester_type)
+
+    img = Image.new("RGB", (IMG_WIDTH, IMG_HEIGHT), theme.bg_color)
     draw = ImageDraw.Draw(img)
 
     # --- Draw border frame ---
     border_inset = 15
     draw.rectangle(
         [border_inset, border_inset, IMG_WIDTH - border_inset, IMG_HEIGHT - border_inset],
-        outline=BORDER_COLOR,
+        outline=theme.border_color,
         width=2,
     )
 
     # Corner decorations (pixel art style)
+    corner_color = theme.milestone_glow if is_milestone else theme.resolved_accent_color
     corner_size = 8
     for cx, cy in [
         (border_inset, border_inset),
@@ -167,8 +166,12 @@ def create_progress_image(
     ]:
         draw.rectangle(
             [cx, cy, cx + corner_size, cy + corner_size],
-            fill=BAR_FILL_COLOR if not is_milestone else MILESTONE_GLOW,
+            fill=corner_color,
         )
+
+    # --- Theme-specific decorations ---
+    if theme.draw_decorations is not None:
+        theme.draw_decorations(draw, img, is_milestone)
 
     # --- Header text ---
     font_header = _load_font(18)
@@ -184,19 +187,20 @@ def create_progress_image(
 
     # Text shadow
     draw.text(
-        (header_x + 2, header_y + 2), header_text, fill=TEXT_SHADOW_COLOR, font=font_header
+        (header_x + 2, header_y + 2), header_text, fill=theme.text_shadow_color, font=font_header
     )
-    draw.text((header_x, header_y), header_text, fill=TEXT_COLOR, font=font_header)
+    draw.text((header_x, header_y), header_text, fill=theme.text_color, font=font_header)
 
     # --- Decorative line under header ---
     line_y = header_y + 35
     line_margin = 100
     draw.line(
         [(line_margin, line_y), (IMG_WIDTH - line_margin, line_y)],
-        fill=BORDER_COLOR,
+        fill=theme.border_color,
         width=1,
     )
     # Small diamond at center of line
+    diamond_color = theme.milestone_glow if is_milestone else theme.resolved_accent_color
     diamond_cx = IMG_WIDTH // 2
     ds = 4
     draw.polygon(
@@ -206,7 +210,7 @@ def create_progress_image(
             (diamond_cx, line_y + ds),
             (diamond_cx - ds, line_y),
         ],
-        fill=BAR_FILL_COLOR if not is_milestone else MILESTONE_GLOW,
+        fill=diamond_color,
     )
 
     # --- Progress bar border ---
@@ -218,7 +222,7 @@ def create_progress_image(
             BAR_RIGHT + bar_border,
             BAR_BOTTOM + bar_border,
         ],
-        outline=BORDER_COLOR,
+        outline=theme.border_color,
         width=2,
     )
 
@@ -233,15 +237,15 @@ def create_progress_image(
 
         if i < int(filled_segments):
             # Fully filled
-            _draw_segment(draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, True, 1.0)
+            _draw_segment(draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, True, theme, 1.0)
         elif i == int(filled_segments) and filled_segments % 1 > 0:
             # Partially filled
             _draw_segment(
-                draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, True, filled_segments % 1
+                draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, True, theme, filled_segments % 1
             )
         else:
             # Empty
-            _draw_segment(draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, False, 0.0)
+            _draw_segment(draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, False, theme, 0.0)
 
     # --- Percentage text ---
     font_pct = _load_font(32)
@@ -256,10 +260,10 @@ def create_progress_image(
 
     # Shadow
     draw.text(
-        (pct_x + 2, pct_y + 2), pct_text, fill=TEXT_SHADOW_COLOR, font=font_pct
+        (pct_x + 2, pct_y + 2), pct_text, fill=theme.text_shadow_color, font=font_pct
     )
     # Main text
-    text_color = MILESTONE_GLOW if is_milestone else TEXT_COLOR
+    text_color = theme.milestone_glow if is_milestone else theme.text_color
     draw.text((pct_x, pct_y), pct_text, fill=text_color, font=font_pct)
 
     # --- Milestone badge ---
@@ -271,21 +275,26 @@ def create_progress_image(
         badge_x = (IMG_WIDTH - badge_w) // 2
         badge_y = pct_y + pct_h + 15
 
-        # Glow effect: draw multiple times with slight offsets
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            draw.text(
-                (badge_x + dx, badge_y + dy),
-                badge_text,
-                fill=(255, 200, 0),
-                font=font_badge,
-            )
-        draw.text((badge_x, badge_y), badge_text, fill=MILESTONE_GLOW, font=font_badge)
+        if theme.draw_milestone_badge is not None:
+            # Theme provides custom milestone badge drawing
+            theme.draw_milestone_badge(draw, badge_x, badge_y, badge_w, _load_font)
+        else:
+            # Default glow effect: draw multiple times with slight offsets
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                draw.text(
+                    (badge_x + dx, badge_y + dy),
+                    badge_text,
+                    fill=(255, 200, 0),
+                    font=font_badge,
+                )
+            draw.text((badge_x, badge_y), badge_text, fill=theme.milestone_glow, font=font_badge)
 
     # --- Scanline effect (subtle retro touch) ---
-    for y in range(0, IMG_HEIGHT, 4):
-        draw.line([(0, y), (IMG_WIDTH, y)], fill=(0, 0, 0, 15), width=1)
+    if theme.scanline_enabled:
+        for y in range(0, IMG_HEIGHT, theme.scanline_spacing):
+            draw.line([(0, y), (IMG_WIDTH, y)], fill=theme.scanline_color, width=1)
 
     # Save
     img.save(str(output), "PNG")
-    logger.info("Progress image saved to %s", output)
+    logger.info("Progress image saved to %s (%s theme)", output, theme.name)
     return str(output)
