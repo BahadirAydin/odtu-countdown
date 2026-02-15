@@ -41,7 +41,7 @@ def get_tweet_text(
         The formatted tweet text.
     """
     pct_str = format_percentage(percentage)
-    base = f"\u26aa {semester.display_name} ilerlemesi: %{pct_str}"
+    base = f"🤖 {semester.display_name} ilerlemesi: %{pct_str}"
 
     if percentage >= 100:
         base = f"{base} \U0001f3c1"

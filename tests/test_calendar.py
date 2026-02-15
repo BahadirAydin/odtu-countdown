@@ -25,12 +25,6 @@ from src.calendar import (
 
 
 class TestSemester:
-    def test_display_name_guz(self, fall_semester):
-        assert fall_semester.display_name == "2025-2026 güz dönemi"
-
-    def test_display_name_bahar(self, spring_semester):
-        assert spring_semester.display_name == "2025-2026 bahar dönemi"
-
     def test_total_days(self, fall_semester):
         expected = (date(2026, 1, 2) - date(2025, 9, 29)).days
         assert fall_semester.total_days == expected

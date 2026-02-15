@@ -5,7 +5,10 @@ Twitter API connection and posting utilities.
 import logging
 import os
 
-import tweepy
+try:
+    import tweepy
+except ModuleNotFoundError:  # pragma: no cover - environment dependent
+    tweepy = None
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
@@ -15,8 +18,8 @@ class TwitterClient:
     """Wrapper around Tweepy for Twitter API v1.1 and v2."""
 
     def __init__(self):
-        self._client: tweepy.Client | None = None
-        self._api: tweepy.API | None = None
+        self._client = None
+        self._api = None
 
     def connect(self) -> None:
         """
@@ -50,6 +53,11 @@ class TwitterClient:
                 f"Missing required environment variables: {', '.join(missing)}"
             )
 
+        if tweepy is None:
+            raise ModuleNotFoundError(
+                "tweepy is required to connect to Twitter API. Install dependencies first."
+            )
+
         auth = tweepy.OAuth1UserHandler(
             api_key, api_key_secret, access_token, access_token_secret
         )
@@ -74,6 +82,6 @@ class TwitterClient:
             media = self._api.media_upload(filename=image_path)
             self._client.create_tweet(text=text, media_ids=[media.media_id])
             logger.info("Successfully posted tweet with image")
-        except tweepy.TweepyException as e:
+        except Exception as e:
             logger.error("Failed to post tweet: %s", e)
             raise

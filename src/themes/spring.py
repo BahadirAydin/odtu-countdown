@@ -28,7 +28,7 @@ def _draw_spring_decorations(
     and small flower/leaf pixel art in corners.
     """
     width = img.width
-    border_inset = 15
+    border_inset = 5
 
     # --- Bunting flags (festival banner triangles along top) ---
     flag_colors = [

@@ -241,19 +241,33 @@ def create_progress_image(
 
     # --- Draw segments ---
     total_bar_width = BAR_RIGHT - BAR_LEFT
+
+    # 1. Calculate the standard width for segments
+    # The math here is correct (N-1 gaps), but // leaves a remainder
     segment_total_width = (
         total_bar_width - (SEGMENT_COUNT - 1) * SEGMENT_GAP
     ) // SEGMENT_COUNT
+
     filled_segments = percentage / 100.0 * SEGMENT_COUNT
 
     for i in range(SEGMENT_COUNT):
+        # Calculate X position
         seg_x = BAR_LEFT + i * (segment_total_width + SEGMENT_GAP)
         seg_y = BAR_TOP
 
+        # 2. FIX: Determine width for THIS segment
+        # If it is the last segment, stretch it to the exact right boundary
+        # to absorb any integer division remainder.
+        if i == SEGMENT_COUNT - 1:
+            current_seg_w = BAR_RIGHT - seg_x
+        else:
+            current_seg_w = segment_total_width
+
+        # 3. Use current_seg_w in the drawing calls below
         if i < int(filled_segments):
             # Fully filled
             _draw_segment(
-                draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, True, theme, 1.0
+                draw, seg_x, seg_y, current_seg_w, BAR_HEIGHT, True, theme, 1.0
             )
         elif i == int(filled_segments) and filled_segments % 1 > 0:
             # Partially filled
@@ -261,7 +275,7 @@ def create_progress_image(
                 draw,
                 seg_x,
                 seg_y,
-                segment_total_width,
+                current_seg_w,
                 BAR_HEIGHT,
                 True,
                 theme,
@@ -270,7 +284,7 @@ def create_progress_image(
         else:
             # Empty
             _draw_segment(
-                draw, seg_x, seg_y, segment_total_width, BAR_HEIGHT, False, theme, 0.0
+                draw, seg_x, seg_y, current_seg_w, BAR_HEIGHT, False, theme, 0.0
             )
 
     # --- Percentage text ---

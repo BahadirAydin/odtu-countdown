@@ -72,7 +72,7 @@ class TestGetTweetText:
 
 
 class TestCheckMilestone:
-    MILESTONES = [10, 25, 33, 42, 50, 69, 75, 90, 100]
+    MILESTONES = [10, 20, 25, 33, 42, 50, 69, 75, 90, 100]
 
     def test_exact_hit(self):
         assert check_milestone(50.0, self.MILESTONES) == 50
