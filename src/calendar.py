@@ -31,7 +31,7 @@ class Semester:
     @property
     def display_name(self) -> str:
         """Turkish display name with proper characters."""
-        return self.name.replace("guz", "guz").replace("donemi", "donemı")
+        return self.name.replace("guz", "güz").replace("donemi", "dönemi")
 
     @property
     def total_days(self) -> int:

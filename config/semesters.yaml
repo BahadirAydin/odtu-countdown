@@ -9,17 +9,17 @@
 #   type: "guz" (fall) or "bahar" (spring)
 
 semesters:
-  - name: "2024-2025 bahar donemi"
+  - name: "2024-2025 bahar dönemi"
     start: "2025-02-17"
     end: "2025-06-06"
     type: "bahar"
 
-  - name: "2025-2026 guz donemi"
+  - name: "2025-2026 guz dönemi"
     start: "2025-09-29"
     end: "2026-01-02"
     type: "guz"
 
-  - name: "2025-2026 bahar donemi"
+  - name: "2025-2026 bahar dönemi"
     start: "2026-02-16"
     end: "2026-06-05"
     type: "bahar"
