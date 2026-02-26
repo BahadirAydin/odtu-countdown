@@ -7,21 +7,14 @@ name: Milestone Twitter Post
 
 on:
   schedule:
-    - cron: '36 18 26 2 *'  # 2025-2026 bahar dönemi 10%
     - cron: '0 3 15 3 *'  # 2025-2026 bahar dönemi 25%
-    - cron: '16 20 23 3 *'  # 2025-2026 bahar dönemi 33%
-    - cron: '43 15 2 4 *'  # 2025-2026 bahar dönemi 42%
     - cron: '0 9 11 4 *'  # 2025-2026 bahar dönemi 50%
-    - cron: '2 2 2 5 *'  # 2025-2026 bahar dönemi 69%
     - cron: '0 15 8 5 *'  # 2025-2026 bahar dönemi 75%
     - cron: '24 23 24 5 *'  # 2025-2026 bahar dönemi 90%
     - cron: '0 21 4 6 *'  # 2025-2026 bahar dönemi 100%
     - cron: '48 1 8 10 *'  # 2026-2027 güz dönemi 10%
     - cron: '0 9 23 10 *'  # 2026-2027 güz dönemi 25%
-    - cron: '50 12 31 10 *'  # 2026-2027 güz dönemi 33%
-    - cron: '9 17 9 11 *'  # 2026-2027 güz dönemi 42%
     - cron: '0 21 17 11 *'  # 2026-2027 güz dönemi 50%
-    - cron: '7 6 7 12 *'  # 2026-2027 güz dönemi 69%
     - cron: '0 9 13 12 *'  # 2026-2027 güz dönemi 75%
     - cron: '12 16 28 12 *'  # 2026-2027 güz dönemi 90%
     - cron: '0 21 7 1 *'  # 2026-2027 güz dönemi 100%
